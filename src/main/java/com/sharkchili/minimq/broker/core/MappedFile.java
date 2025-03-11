@@ -1,4 +1,4 @@
-package com.sharkchili.minimq.broker;
+package com.sharkchili.minimq.broker.core;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ReflectUtil;
@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
@@ -19,6 +18,9 @@ public class MappedFile {
     private FileChannel fileChannel;
     private MappedByteBuffer mappedByteBuffer;
 
+    public MappedFile() {
+
+    }
 
     public MappedFile(String fileName, int offset, int size) throws IOException {
         if (!FileUtil.exist(fileName)) {

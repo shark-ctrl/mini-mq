@@ -1,6 +1,5 @@
 package com.sharkchili.minimq.broker.core;
 
-import com.sharkchili.minimq.broker.MappedFile;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -18,5 +17,10 @@ public class MappedFileCache {
 
     public MappedFile get(String key) {
         return cache.get(key);
+    }
+
+
+    public boolean containsTopic(String topicName) {
+        return cache.containsKey(topicName);
     }
 }
