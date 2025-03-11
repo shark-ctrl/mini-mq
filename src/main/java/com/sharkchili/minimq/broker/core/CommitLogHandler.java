@@ -53,4 +53,16 @@ public class CommitLogHandler {
         return mappedFile.read(0, 1 * 1024 * 1024);
     }
 
+
+    public void cleanCommitLog(String topicName) throws IOException {
+        if (StrUtil.isEmpty(topicName)) {
+            throw new RuntimeException("invalid topicName is null");
+        }
+        if (!mappedFileCache.containsTopic(topicName)) {
+            throw new RuntimeException("topic not exist");
+        }
+        MappedFile mappedFile = mappedFileCache.get(topicName);
+        mappedFile.cleaner();
+    }
+
 }

@@ -16,8 +16,7 @@ class MiniMqApplicationTests {
 
     @Autowired
     private CommitLogHandler commitLogHandler;
-    @Autowired
-    private MappedFileCache mappedFileCache;
+
 
     @Test
     void contextLoads() {
@@ -33,6 +32,8 @@ class MiniMqApplicationTests {
         byte[] bytes = commitLogHandler.readCommitLog("test-topic");
         String s = new String(bytes, "utf-8");
         log.info("the commit log message is :{}", s);
+
+        commitLogHandler.cleanCommitLog("test-topic");
 
     }
 

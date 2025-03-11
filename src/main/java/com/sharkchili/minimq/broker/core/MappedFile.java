@@ -54,8 +54,8 @@ public class MappedFile {
     }
 
 
-    private static void cleaner(MappedByteBuffer buffer) {
-        Cleaner cleaner = ReflectUtil.invoke(buffer, "cleaner");
+    public void cleaner() {
+        Cleaner cleaner = ReflectUtil.invoke(this.mappedByteBuffer, "cleaner");
         cleaner.clean();
 
     }
