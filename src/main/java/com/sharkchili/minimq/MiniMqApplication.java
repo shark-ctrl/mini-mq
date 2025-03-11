@@ -1,8 +1,7 @@
 package com.sharkchili.minimq;
 
 import cn.hutool.extra.spring.SpringUtil;
-import com.sharkchili.minimq.broker.core.MappedFile;
-import com.sharkchili.minimq.broker.core.MappedFileCache;
+import com.sharkchili.minimq.broker.config.BaseConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
