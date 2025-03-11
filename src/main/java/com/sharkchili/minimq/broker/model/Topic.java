@@ -10,4 +10,5 @@ public class Topic {
     private List<Queue> queueList;
     private Long createTime;
     private Long updateTime;
+    private CommitLog commitLog;
 }

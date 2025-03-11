@@ -1,6 +1,6 @@
 [
   {
-    "topic": "test_topic",
+    "topicName": "test_topic",
     "queueList": [
       {
         "id": 1,
