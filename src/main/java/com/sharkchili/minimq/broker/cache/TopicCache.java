@@ -4,12 +4,15 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
 import com.sharkchili.minimq.broker.model.Topic;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -18,13 +21,16 @@ import java.util.stream.Collectors;
 public class TopicCache {
 
 
+    private List<Topic> topicList;
     private Map<String, Topic> topicMap;
+    private File topicJsonFilePath;
 
     @PostConstruct
     public void init() throws FileNotFoundException {
-        File file = ResourceUtils.getFile("classpath:conf/mq-topic.json");
-        byte[] bytes = FileUtil.readBytes(file);
+        topicJsonFilePath = ResourceUtils.getFile("classpath:conf/mq-topic.json");
+        byte[] bytes = FileUtil.readBytes(topicJsonFilePath);
         JSONArray objects = JSONUtil.parseArray(new String(bytes));
+        topicList = JSONUtil.toList(objects, Topic.class);
         topicMap = JSONUtil.toList(objects, Topic.class).stream().collect(Collectors.toMap(Topic::getTopicName, Function.identity()));
     }
 
@@ -35,6 +41,13 @@ public class TopicCache {
 
     public boolean containsTopic(String topicName) {
         return topicMap.containsKey(topicName);
+    }
+
+
+    @Scheduled(fixedRate = 15000)
+    @Async("flushTopicListScheduler")
+    public void flushTopicList2Disk() {
+        FileUtil.writeUtf8String(JSONUtil.toJsonStr(topicList), topicJsonFilePath);
     }
 
 }
