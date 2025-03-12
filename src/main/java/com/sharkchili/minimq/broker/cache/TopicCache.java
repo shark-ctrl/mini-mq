@@ -38,7 +38,7 @@ public class TopicCache {
         byte[] bytes = FileUtil.readBytes(topicJsonFilePath);
         JSONArray objects = JSONUtil.parseArray(new String(bytes));
         topicList = JSONUtil.toList(objects, Topic.class);
-        topicMap = JSONUtil.toList(objects, Topic.class).stream().collect(Collectors.toMap(Topic::getTopicName, Function.identity()));
+        topicMap = topicList.stream().collect(Collectors.toMap(Topic::getTopicName, Function.identity()));
         log.info("topicList:{}", JSONUtil.toJsonStr(topicList));
     }
 

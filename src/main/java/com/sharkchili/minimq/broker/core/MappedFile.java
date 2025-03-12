@@ -69,12 +69,16 @@ public class MappedFile {
 
         Topic topic = topicCache.getTopic(topicName);
         CommitLog commitLog = topic.getCommitLog();
-        if (commitLog.getLimit() - commitLog.getOffset() >= 0) {
+        if (commitLog.getLimit() - commitLog.getOffset() > 0) {
             return;
         }
 
         String newCommitLogFile = createNewCommitLogFile(topicName, commitLog.getFileName());
         doLoadFileWithMmap(newCommitLogFile, 0, COMMIT_LOG_DEFAULT_MMAP_SIZE);
+
+        commitLog.setFileName(newCommitLogFile.substring(newCommitLogFile.length() - 8));
+        commitLog.setOffset(0);
+        commitLog.setLimit(COMMIT_LOG_DEFAULT_MMAP_SIZE);
 
 
     }
@@ -97,7 +101,13 @@ public class MappedFile {
 
         mapNewCommitLogIfNeeded();
 
-        this.mappedByteBuffer.put(message.convert2Bytes());
+        byte[] bytes = message.convert2Bytes();
+        this.mappedByteBuffer.put(bytes);
+        if (!SpringUtil.getBean(TopicCache.class).containsTopic(topicName)) {
+            throw new RuntimeException("topic file not exist");
+        }
+        CommitLog commitLog = SpringUtil.getBean(TopicCache.class).getTopic(topicName).getCommitLog();
+        commitLog.setOffset(commitLog.getOffset() + bytes.length);
         if (flush) {
             mappedByteBuffer.force();
         }

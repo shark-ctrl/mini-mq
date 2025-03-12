@@ -28,7 +28,7 @@ public class CommitLogHandler {
         mappedFileCache.put(topicName, mappedFile);
     }
 
-    public void appendCommitLog(String topicName, String msg) throws Exception {
+    public void appendMsgCommitLog(String topicName, String msg) throws Exception {
         if (StrUtil.isEmpty(msg)) {
             throw new RuntimeException("invalid msg is null");
         }
@@ -52,7 +52,7 @@ public class CommitLogHandler {
         }
 
         MappedFile mappedFile = mappedFileCache.get(topicName);
-        return mappedFile.read(0, 1 * 1024 * 1024);
+        return mappedFile.read(0, 14);
     }
 
 
