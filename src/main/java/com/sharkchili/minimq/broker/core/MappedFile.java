@@ -78,7 +78,7 @@ public class MappedFile {
 
         commitLog.setFileName(newCommitLogFile.substring(newCommitLogFile.length() - 8));
         commitLog.setOffset(0);
-        commitLog.setLimit(100);
+        commitLog.setLimit(COMMIT_LOG_DEFAULT_MMAP_SIZE);
 
 
     }

@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+import static com.sharkchili.minimq.broker.constants.BrokerConstants.COMMIT_LOG_DEFAULT_MMAP_SIZE;
+
 @Component
 @Slf4j
 public class CommitLogHandler {
@@ -52,7 +54,7 @@ public class CommitLogHandler {
         }
 
         MappedFile mappedFile = mappedFileCache.get(topicName);
-        return mappedFile.read(0, 14);
+        return mappedFile.read(0, COMMIT_LOG_DEFAULT_MMAP_SIZE);
     }
 
 
