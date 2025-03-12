@@ -4,6 +4,7 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
 import com.sharkchili.minimq.broker.model.Topic;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
+@Slf4j
 public class TopicCache {
 
 
@@ -32,6 +34,7 @@ public class TopicCache {
         JSONArray objects = JSONUtil.parseArray(new String(bytes));
         topicList = JSONUtil.toList(objects, Topic.class);
         topicMap = JSONUtil.toList(objects, Topic.class).stream().collect(Collectors.toMap(Topic::getTopicName, Function.identity()));
+        log.info("topicList:{}", JSONUtil.toJsonStr(topicList));
     }
 
 
@@ -47,6 +50,7 @@ public class TopicCache {
     @Scheduled(fixedRate = 15000)
     @Async("flushTopicListScheduler")
     public void flushTopicList2Disk() {
+        log.info("flush topic list  to disk,topicList:{} ,write path:{}", JSONUtil.toJsonStr(topicList), topicJsonFilePath);
         FileUtil.writeUtf8String(JSONUtil.toJsonStr(topicList), topicJsonFilePath);
     }
 

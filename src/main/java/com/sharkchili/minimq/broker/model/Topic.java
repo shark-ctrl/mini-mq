@@ -6,9 +6,9 @@ import java.util.List;
 
 @Data
 public class Topic {
+    private CommitLog commitLog;
     private String topicName;
-    private List<Queue> queueList;
     private Long createTime;
     private Long updateTime;
-    private CommitLog commitLog;
+    private List<Queue> queueList;
 }
