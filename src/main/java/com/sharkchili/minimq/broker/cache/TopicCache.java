@@ -33,4 +33,8 @@ public class TopicCache {
         return topicMap.get(topicName);
     }
 
+    public boolean containsTopic(String topicName) {
+        return topicMap.containsKey(topicName);
+    }
+
 }

@@ -2,13 +2,10 @@ package com.sharkchili.minimq.minimq;
 
 import cn.hutool.core.io.FileUtil;
 import com.sharkchili.minimq.broker.core.CommitLogHandler;
-import com.sharkchili.minimq.broker.core.MappedFileCache;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import java.io.IOException;
 
 @SpringBootTest
 @Slf4j

@@ -5,7 +5,10 @@ import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import com.sharkchili.minimq.broker.cache.MappedFileCache;
 import com.sharkchili.minimq.broker.cache.TopicCache;
+import com.sharkchili.minimq.broker.model.CommitLog;
+import com.sharkchili.minimq.broker.model.Message;
 import com.sharkchili.minimq.broker.model.Topic;
 import org.springframework.util.ResourceUtils;
 import sun.misc.Cleaner;
@@ -17,15 +20,16 @@ import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
+import static com.sharkchili.minimq.broker.constants.BrokerConstants.*;
+
 
 public class MappedFile {
 
     private File file;
     private FileChannel fileChannel;
     private MappedByteBuffer mappedByteBuffer;
+    private String topicName;
 
-
-    public static final String BASE_STORE_PATH = "classpath:conf/store/";
 
     public MappedFile() {
 
@@ -46,9 +50,34 @@ public class MappedFile {
             throw new FileNotFoundException(latestCommitLogPath);
         }
 
-        this.file = new File(latestCommitLogPath);
+        this.topicName = topicName;
+        doLoadFileWithMmap(latestCommitLogPath, offset, size);
+    }
+
+
+    private void doLoadFileWithMmap(String fileName, int offset, int size) throws Exception {
+        this.file = new File(fileName);
         this.fileChannel = new RandomAccessFile(file, "rw").getChannel();
         this.mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, offset, size);
+    }
+
+
+    private void mapNewCommitLogIfNeeded() throws Exception {
+        TopicCache topicCache = SpringUtil.getBean(TopicCache.class);
+        if (!topicCache.containsTopic(topicName)) {
+            throw new RuntimeException("topic not exist");
+        }
+
+        Topic topic = topicCache.getTopic(topicName);
+        CommitLog commitLog = topic.getCommitLog();
+        if (commitLog.getLimit() - commitLog.getOffset() >= 0) {
+            return;
+        }
+
+        String newCommitLogFile = createNewCommitLogFile(topicName, commitLog.getFileName());
+        doLoadFileWithMmap(newCommitLogFile, 0, COMMIT_LOG_DEFAULT_MMAP_SIZE);
+
+
     }
 
 
@@ -60,13 +89,16 @@ public class MappedFile {
     }
 
 
-    public void write(byte[] bytes) throws IOException {
-        write(bytes, false);
+    public void write(Message message) throws Exception {
+        write(message, false);
     }
 
 
-    public void write(byte[] bytes, boolean flush) throws IOException {
-        this.mappedByteBuffer.put(bytes);
+    public void write(Message message, boolean flush) throws Exception {
+
+        mapNewCommitLogIfNeeded();
+
+        this.mappedByteBuffer.put(message.convert2Bytes());
         if (flush) {
             mappedByteBuffer.force();
         }

@@ -1,12 +1,13 @@
 package com.sharkchili.minimq.broker.core;
 
 import cn.hutool.core.util.StrUtil;
+import com.sharkchili.minimq.broker.cache.MappedFileCache;
+import com.sharkchili.minimq.broker.model.Message;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.rmi.RemoteException;
 
 @Component
 @Slf4j
@@ -27,7 +28,7 @@ public class CommitLogHandler {
         mappedFileCache.put(topicName, mappedFile);
     }
 
-    public void appendCommitLog(String topicName, String msg) throws IOException {
+    public void appendCommitLog(String topicName, String msg) throws Exception {
         if (StrUtil.isEmpty(msg)) {
             throw new RuntimeException("invalid msg is null");
         }
@@ -38,7 +39,7 @@ public class CommitLogHandler {
 
 
         MappedFile mappedFile = mappedFileCache.get(topicName);
-        mappedFile.write(msg.getBytes());
+        mappedFile.write(new Message(msg));
     }
 
 

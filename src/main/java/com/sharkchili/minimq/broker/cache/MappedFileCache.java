@@ -1,5 +1,6 @@
-package com.sharkchili.minimq.broker.core;
+package com.sharkchili.minimq.broker.cache;
 
+import com.sharkchili.minimq.broker.core.MappedFile;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
