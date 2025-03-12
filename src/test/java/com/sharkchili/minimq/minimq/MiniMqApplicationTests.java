@@ -24,7 +24,7 @@ class MiniMqApplicationTests {
 
 
     @Test
-    public void testMmapAppend() throws IOException {
+    public void testMmapAppend() throws Exception {
         FileUtil.writeBytes("".getBytes(), "F:\\tmp\\0000000");
         commitLogHandler.loadCommitLogFile("test-topic", "F:\\tmp\\0000000");
         commitLogHandler.appendCommitLog("test-topic", "this is a test message");
