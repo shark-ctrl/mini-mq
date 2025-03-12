@@ -1,23 +1,26 @@
 [
   {
-    "topicName": "test_topic",
+    "commitLog": {
+      "fileName": "00000000",
+      "offset": 0,
+      "limit": 1048576
+    },
+    "topicName": "test-topic",
+    "createTime": 1741749264780,
+    "updateTime": 1741749264783,
     "queueList": [
       {
         "id": 1,
-        "minOffset": 17835,
-        "currentOffset": 17838,
-        "maxOffset": 17839
+        "currentOffset": 100,
+        "maxOffset": 200,
+        "minOffset": 1
       },
       {
         "id": 2,
-        "minOffset": 27835,
-        "currentOffset": 27838,
-        "maxOffset": 27839
+        "currentOffset": 100,
+        "maxOffset": 200,
+        "minOffset": 1
       }
-    ],
-    "createAt": 1741680603467,
-    "updateAt": 1741680603468
+    ]
   }
 ]
-
-
