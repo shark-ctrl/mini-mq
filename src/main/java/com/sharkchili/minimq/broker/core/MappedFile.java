@@ -24,9 +24,16 @@ import static com.sharkchili.minimq.broker.constants.BrokerConstants.*;
 
 public class MappedFile {
 
+    /**
+     * 对应的commitLog实际路径地址
+     */
     private File file;
     private FileChannel fileChannel;
+    /**
+     * 对应的mmap映射对象
+     */
     private MappedByteBuffer mappedByteBuffer;
+
     private String topicName;
 
 
@@ -44,13 +51,37 @@ public class MappedFile {
 
 
     public void loadFileWithMmap(String topicName, int offset, int size) throws Exception {
+        //获取可写入的文件路径
         String latestCommitLogPath = getLatestCommitLogPath(topicName);
+        //不存在则抛异常
         if (!FileUtil.exist(latestCommitLogPath)) {
             throw new FileNotFoundException(latestCommitLogPath);
         }
 
         this.topicName = topicName;
+        //基于commitLog建立文件映射
         doLoadFileWithMmap(latestCommitLogPath, offset, size);
+    }
+
+    private String getLatestCommitLogPath(String topicName) throws Exception {
+        if (StrUtil.isEmpty(topicName)) {
+            throw new IllegalArgumentException("topic name is empty");
+        }
+
+        Topic topic = SpringUtil.getBean(TopicCache.class).getTopic(topicName);
+        long diff = topic.getCommitLog().getLimit() - topic.getCommitLog().getOffset();
+        if (diff <= 0) {
+            createNewCommitLogFile(topicName, topic.getCommitLog().getFileName());
+        }
+
+
+        return SpringUtil.getBean(BaseConfig.class).getBrokerConfPath() +
+                "store" +
+                File.separator +
+                topicName +
+                File.separator +
+                topic.getCommitLog().getFileName();
+
     }
 
 
@@ -128,26 +159,6 @@ public class MappedFile {
 
     }
 
-    public String getLatestCommitLogPath(String topicName) throws Exception {
-        if (StrUtil.isEmpty(topicName)) {
-            throw new IllegalArgumentException("topic name is empty");
-        }
-
-        Topic topic = SpringUtil.getBean(TopicCache.class).getTopic(topicName);
-        long diff = topic.getCommitLog().getLimit() - topic.getCommitLog().getOffset();
-        if (diff <= 0) {
-            createNewCommitLogFile(topicName, topic.getCommitLog().getFileName());
-        }
-
-
-        return SpringUtil.getBean(BaseConfig.class).getBrokerConfPath() +
-                "store" +
-                File.separator +
-                topicName +
-                File.separator +
-                topic.getCommitLog().getFileName();
-
-    }
 
     private String createNewCommitLogFile(String topicName, String currentCommitLogName) throws IOException {
         int no = NumberUtil.parseNumber(currentCommitLogName).intValue();
