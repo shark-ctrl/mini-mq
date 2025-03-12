@@ -15,14 +15,15 @@ public class CommitLogHandler {
     @Autowired
     private MappedFileCache mappedFileCache;
 
-    public void loadCommitLogFile(String topicName, String fileName) throws IOException {
+    public void loadCommitLogFile(String topicName, String fileName) throws Exception {
 
         if (StrUtil.isEmpty(fileName) ||
                 StrUtil.isEmpty(topicName)) {
             throw new RuntimeException("invalid topicName or fileName is null");
         }
 
-        MappedFile mappedFile = new MappedFile(fileName, 0, 1 * 1024 * 1024);
+        MappedFile mappedFile = new MappedFile(fileName);
+        mappedFile.loadFileWithMmap(topicName, 0, 1 * 1024 * 1024);
         mappedFileCache.put(topicName, mappedFile);
     }
 

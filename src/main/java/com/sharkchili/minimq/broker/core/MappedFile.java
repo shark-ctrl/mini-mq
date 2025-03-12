@@ -25,18 +25,28 @@ public class MappedFile {
     private MappedByteBuffer mappedByteBuffer;
 
 
-    public static final String BASE_STORE_PATH = "/store/";
+    public static final String BASE_STORE_PATH = "classpath:conf/store/";
 
     public MappedFile() {
 
     }
 
-    public MappedFile(String fileName, int offset, int size) throws IOException {
-        if (!FileUtil.exist(fileName)) {
-            throw new FileNotFoundException(fileName);
+    public MappedFile(String path) {
+        this(new File(path));
+    }
+
+    public MappedFile(File file) {
+        this.file = file;
+    }
+
+
+    public void loadFileWithMmap(String topicName, int offset, int size) throws Exception {
+        String latestCommitLogPath = getLatestCommitLogPath(topicName);
+        if (!FileUtil.exist(latestCommitLogPath)) {
+            throw new FileNotFoundException(latestCommitLogPath);
         }
 
-        this.file = new File(fileName);
+        this.file = new File(latestCommitLogPath);
         this.fileChannel = new RandomAccessFile(file, "rw").getChannel();
         this.mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, offset, size);
     }
@@ -69,7 +79,7 @@ public class MappedFile {
 
     }
 
-    public String getLatestCommitLogPath(String topicName) throws FileNotFoundException {
+    public String getLatestCommitLogPath(String topicName) throws Exception {
         if (StrUtil.isEmpty(topicName)) {
             throw new IllegalArgumentException("topic name is empty");
         }
@@ -77,19 +87,29 @@ public class MappedFile {
         Topic topic = SpringUtil.getBean(TopicCache.class).getTopic(topicName);
         long diff = topic.getCommitLog().getLimit() - topic.getCommitLog().getOffset();
         if (diff <= 0) {
-
+            createNewCommitLogFile(topicName, topic.getCommitLog().getFileName());
         }
 
 
-        return ResourceUtils.getFile(BASE_STORE_PATH).getPath() + File.separator + topic.getCommitLog().getFileName();
+        return ResourceUtils.getFile(BASE_STORE_PATH).getPath() +
+                File.separator +
+                topicName +
+                File.separator +
+                topic.getCommitLog().getFileName();
 
     }
 
     private String createNewCommitLogFile(String topicName, String currentCommitLogName) throws IOException {
         int no = NumberUtil.parseNumber(currentCommitLogName).intValue();
-        String newFileName = topicName + File.separator + String.format("%08d", ++no);
-    //todo 创建文件夹
-        return newFileName;
+        String newFilePath = ResourceUtils.getFile(BASE_STORE_PATH).getPath() +
+                File.separator +
+                topicName +
+                File.separator +
+                String.format("%08d", ++no);
+
+        File newFile = FileUtil.touch(newFilePath);
+
+        return newFile.getPath();
     }
 
 }
