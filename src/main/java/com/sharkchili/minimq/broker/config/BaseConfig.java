@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 public class BaseConfig {
     private String mqHome;
 
-
+    private String brokerConfPath;
 
 
 }

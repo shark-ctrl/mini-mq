@@ -5,12 +5,11 @@ import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import com.sharkchili.minimq.broker.cache.MappedFileCache;
 import com.sharkchili.minimq.broker.cache.TopicCache;
+import com.sharkchili.minimq.broker.config.BaseConfig;
 import com.sharkchili.minimq.broker.model.CommitLog;
 import com.sharkchili.minimq.broker.model.Message;
 import com.sharkchili.minimq.broker.model.Topic;
-import org.springframework.util.ResourceUtils;
 import sun.misc.Cleaner;
 
 import java.io.File;
@@ -123,7 +122,8 @@ public class MappedFile {
         }
 
 
-        return ResourceUtils.getFile(BASE_STORE_PATH).getPath() +
+        return SpringUtil.getBean(BaseConfig.class).getBrokerConfPath() +
+                "store" +
                 File.separator +
                 topicName +
                 File.separator +
@@ -133,7 +133,8 @@ public class MappedFile {
 
     private String createNewCommitLogFile(String topicName, String currentCommitLogName) throws IOException {
         int no = NumberUtil.parseNumber(currentCommitLogName).intValue();
-        String newFilePath = ResourceUtils.getFile(BASE_STORE_PATH).getPath() +
+        String newFilePath = SpringUtil.getBean(BaseConfig.class).getBrokerConfPath() +
+                "store" +
                 File.separator +
                 topicName +
                 File.separator +
