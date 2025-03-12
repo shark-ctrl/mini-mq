@@ -78,7 +78,7 @@ public class MappedFile {
 
         commitLog.setFileName(newCommitLogFile.substring(newCommitLogFile.length() - 8));
         commitLog.setOffset(0);
-        commitLog.setLimit(COMMIT_LOG_DEFAULT_MMAP_SIZE);
+        commitLog.setLimit(100);
 
 
     }
@@ -97,17 +97,25 @@ public class MappedFile {
     }
 
 
-    public void write(Message message, boolean flush) throws Exception {
+    public synchronized void write(Message message, boolean flush) throws Exception {
+
 
         mapNewCommitLogIfNeeded();
 
+
         byte[] bytes = message.convert2Bytes();
+
         this.mappedByteBuffer.put(bytes);
+
+
         if (!SpringUtil.getBean(TopicCache.class).containsTopic(topicName)) {
             throw new RuntimeException("topic file not exist");
         }
+
         CommitLog commitLog = SpringUtil.getBean(TopicCache.class).getTopic(topicName).getCommitLog();
         commitLog.setOffset(commitLog.getOffset() + bytes.length);
+
+
         if (flush) {
             mappedByteBuffer.force();
         }

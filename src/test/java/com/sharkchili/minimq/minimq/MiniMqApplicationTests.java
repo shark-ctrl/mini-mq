@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 @SpringBootTest
@@ -26,11 +29,21 @@ class MiniMqApplicationTests {
 
     @Test
     public void testMmapAppend() throws Exception {
+        ExecutorService threadPool = Executors.newFixedThreadPool(100);
+        CountDownLatch countDownLatch = new CountDownLatch(100);
         //清空测试文件
         FileUtil.writeBytes("".getBytes(), "F:\\tmp\\broker\\store\\test-topic\\00000000");
         commitLogHandler.loadCommitLogFile("test-topic", "F:\\tmp\\broker\\store\\test-topic\\00000000");
-        for (int i = 0; i < 6; i++) {
-            commitLogHandler.appendMsgCommitLog("test-topic", "0123456789");
+        for (int i = 0; i < 100; i++) {
+            threadPool.execute(()-> {
+                try {
+                    commitLogHandler.appendMsgCommitLog("test-topic", "0123456789");
+                    countDownLatch.countDown();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
         }
 
 
