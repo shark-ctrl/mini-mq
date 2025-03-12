@@ -29,6 +29,7 @@ public class TopicCache {
 
     @PostConstruct
     public void init() throws FileNotFoundException {
+        //todo 设置成采用环境变量的方式获取路径
         topicJsonFilePath = ResourceUtils.getFile("classpath:conf/mq-topic.json");
         byte[] bytes = FileUtil.readBytes(topicJsonFilePath);
         JSONArray objects = JSONUtil.parseArray(new String(bytes));
