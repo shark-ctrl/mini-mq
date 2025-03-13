@@ -18,9 +18,9 @@ import java.io.File;
 import java.util.List;
 
 
-@Component
+//@Component
 @Slf4j
-@Data
+//@Data
 public class ConsumeQueueOffsetCache {
 
 

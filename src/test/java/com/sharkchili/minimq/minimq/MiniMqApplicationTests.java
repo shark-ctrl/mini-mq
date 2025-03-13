@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.nio.ByteBuffer;
+import java.sql.Time;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -34,10 +35,11 @@ class MiniMqApplicationTests {
         //清空测试文件
         FileUtil.writeBytes("".getBytes(), "F:\\tmp\\broker\\store\\test-topic\\00000000");
         commitLogHandler.loadCommitLogFile("test-topic", "F:\\tmp\\broker\\store\\test-topic\\00000000");
+
         for (int i = 0; i < 100; i++) {
             threadPool.execute(()-> {
                 try {
-                    commitLogHandler.appendMsgCommitLog("test-topic", "0123456789");
+                    commitLogHandler.appendMsgCommitLog("test-topic", "0123456789012345");
                     countDownLatch.countDown();
                 } catch (Exception e) {
                     throw new RuntimeException(e);
@@ -46,16 +48,20 @@ class MiniMqApplicationTests {
 
         }
 
-
+        countDownLatch.await();
         byte[] bytes = commitLogHandler.readCommitLog("test-topic");
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
         int length = byteBuffer.getInt();
 
+
         log.info("the commit log message length :{}", length);
         log.info("the commit log message :{}", new String(byteBuffer.get(bytes, 4, length).array()));
 
-
+        //释放mmap内存映射
         commitLogHandler.cleanCommitLog("test-topic");
+
+        //commitLog进度刷盘
+        ThreadUtil.sleep(1,TimeUnit.MINUTES);
 
     }
 

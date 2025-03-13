@@ -54,7 +54,7 @@ public class CommitLogHandler {
         }
 
         CommitLogMappedFile mappedFile = commitLogMappedFileCache.get(topicName);
-        return mappedFile.read(0, COMMIT_LOG_DEFAULT_MMAP_SIZE);
+        return mappedFile.read(0, 20);
     }
 
 

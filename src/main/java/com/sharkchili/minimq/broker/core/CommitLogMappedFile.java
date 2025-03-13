@@ -11,6 +11,7 @@ import com.sharkchili.minimq.broker.entity.CommitLog;
 import com.sharkchili.minimq.broker.entity.ConsumeQueue;
 import com.sharkchili.minimq.broker.entity.Message;
 import com.sharkchili.minimq.broker.entity.Topic;
+import lombok.extern.slf4j.Slf4j;
 import sun.misc.Cleaner;
 
 import java.io.File;
@@ -23,6 +24,7 @@ import java.nio.channels.FileChannel;
 import static com.sharkchili.minimq.broker.constants.BrokerConstants.*;
 
 
+@Slf4j
 public class CommitLogMappedFile {
 
     /**
@@ -71,9 +73,9 @@ public class CommitLogMappedFile {
         //从缓存中拉取当前topic信息
         Topic topic = SpringUtil.getBean(TopicJSONCache.class).getTopic(topicName);
         //计算可写入的大小
-        long writableSize  = topic.getCommitLog().getLimit() - topic.getCommitLog().getOffset();
+        long writableSize = topic.getCommitLog().getLimit() - topic.getCommitLog().getOffset();
         //如果不够写创建新文件并返回文件名
-        if (writableSize  <= 0) {
+        if (writableSize <= 0) {
             createNewCommitLogFile(topicName, topic.getCommitLog().getFileName());
         }
 
@@ -95,9 +97,6 @@ public class CommitLogMappedFile {
     }
 
 
-
-
-
     public byte[] read(int offset, int size) throws IOException {
         byte[] bytes = new byte[size];
         this.mappedByteBuffer.position(offset);
@@ -117,6 +116,7 @@ public class CommitLogMappedFile {
         //将消息转为byte数组
         byte[] bytes = message.convert2Bytes();
         //追加到映射内存中
+        log.info("写入数据到:{},数据大小:{}", topicName, bytes.length);
         this.mappedByteBuffer.put(bytes);
 
 
@@ -153,7 +153,7 @@ public class CommitLogMappedFile {
         //更新缓存中commitLog信息为新建的commitLog信息
         commitLog.setFileName(newCommitLogFile.substring(newCommitLogFile.length() - 8));
         commitLog.setOffset(0);
-        commitLog.setLimit(COMMIT_LOG_DEFAULT_MMAP_SIZE);
+        commitLog.setLimit(100);
 
 
     }

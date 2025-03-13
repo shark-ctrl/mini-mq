@@ -1,1 +1,21 @@
-[{"commitLog":{"fileName":"00000019","offset":100,"limit":100},"topicName":"test-topic","createTime":1741749264780,"updateTime":1741764216575,"queueList":[{"id":1,"minOffset":1,"maxOffset":200,"currentOffset":100},{"id":2,"minOffset":1,"maxOffset":200,"currentOffset":100}]}]
+[{
+  "commitLog": {
+    "fileName": "00000000",
+    "offset": 0,
+    "limit": 100
+  },
+  "topicName": "test-topic",
+  "createTime": 1741749264780,
+  "updateTime": 1741764216575,
+  "queueList": [{
+    "id": 1,
+    "minOffset": 1,
+    "maxOffset": 200,
+    "currentOffset": 100
+  }, {
+    "id": 2,
+    "minOffset": 1,
+    "maxOffset": 200,
+    "currentOffset": 100
+  }]
+}]

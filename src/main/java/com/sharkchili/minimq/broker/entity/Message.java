@@ -20,7 +20,7 @@ public class Message {
 
     public byte[] convert2Bytes() {
         //计算消息的字节大小
-        ByteBuffer buffer = ByteBuffer.allocate(size + content.getBytes().length);
+        ByteBuffer buffer = ByteBuffer.allocate(4 + content.getBytes().length);
         //用4个字节写入消息的size
         buffer.putInt(size);
         //写入消息
