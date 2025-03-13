@@ -12,5 +12,7 @@ public class BaseConfig {
 
     private String brokerConfPath;
 
+    private String consumeQueuePath;
+
 
 }

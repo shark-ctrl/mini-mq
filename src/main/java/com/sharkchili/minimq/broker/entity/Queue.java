@@ -5,7 +5,8 @@ import lombok.Data;
 @Data
 public class Queue {
     private Integer id;
-    private Long minOffset;
-    private Long maxOffset;
-    private Long currentOffset;
+    private int minOffset;
+    private int maxOffset;
+    private int currentOffset;
+    private String fileName;
 }
