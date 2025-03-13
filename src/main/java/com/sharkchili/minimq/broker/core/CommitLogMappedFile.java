@@ -5,7 +5,7 @@ import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import com.sharkchili.minimq.broker.cache.TopicCache;
+import com.sharkchili.minimq.broker.cache.TopicJSONCache;
 import com.sharkchili.minimq.broker.config.BaseConfig;
 import com.sharkchili.minimq.broker.entity.CommitLog;
 import com.sharkchili.minimq.broker.entity.ConsumeQueue;
@@ -68,14 +68,16 @@ public class CommitLogMappedFile {
         if (StrUtil.isEmpty(topicName)) {
             throw new IllegalArgumentException("topic name is empty");
         }
-
-        Topic topic = SpringUtil.getBean(TopicCache.class).getTopic(topicName);
-        long diff = topic.getCommitLog().getLimit() - topic.getCommitLog().getOffset();
-        if (diff <= 0) {
+        //从缓存中拉取当前topic信息
+        Topic topic = SpringUtil.getBean(TopicJSONCache.class).getTopic(topicName);
+        //计算可写入的大小
+        long writableSize  = topic.getCommitLog().getLimit() - topic.getCommitLog().getOffset();
+        //如果不够写创建新文件并返回文件名
+        if (writableSize  <= 0) {
             createNewCommitLogFile(topicName, topic.getCommitLog().getFileName());
         }
 
-
+        //反之返回当前文件全路径
         return SpringUtil.getBean(BaseConfig.class).getBrokerConfPath() +
                 "store" +
                 File.separator +
@@ -93,27 +95,7 @@ public class CommitLogMappedFile {
     }
 
 
-    private void mapNewCommitLogIfNeeded() throws Exception {
-        TopicCache topicCache = SpringUtil.getBean(TopicCache.class);
-        if (!topicCache.containsTopic(topicName)) {
-            throw new RuntimeException("topic not exist");
-        }
 
-        Topic topic = topicCache.getTopic(topicName);
-        CommitLog commitLog = topic.getCommitLog();
-        if (commitLog.getLimit() - commitLog.getOffset() > 0) {
-            return;
-        }
-
-        String newCommitLogFile = createNewCommitLogFile(topicName, commitLog.getFileName());
-        doLoadFileWithMmap(newCommitLogFile, 0, COMMIT_LOG_DEFAULT_MMAP_SIZE);
-
-        commitLog.setFileName(newCommitLogFile.substring(newCommitLogFile.length() - 8));
-        commitLog.setOffset(0);
-        commitLog.setLimit(COMMIT_LOG_DEFAULT_MMAP_SIZE);
-
-
-    }
 
 
     public byte[] read(int offset, int size) throws IOException {
@@ -130,25 +112,50 @@ public class CommitLogMappedFile {
 
 
     public synchronized void write(Message message, boolean flush) throws Exception {
-        mapNewCommitLogIfNeeded();
-
+        //检查当前commitLog是否够写，如果不够则创建新文件并建立mmap映射
+        mmapNewCommitLogIfNeeded();
+        //将消息转为byte数组
         byte[] bytes = message.convert2Bytes();
+        //追加到映射内存中
         this.mappedByteBuffer.put(bytes);
 
 
-        if (!SpringUtil.getBean(TopicCache.class).containsTopic(topicName)) {
+        if (!SpringUtil.getBean(TopicJSONCache.class).containsTopic(topicName)) {
             throw new RuntimeException("topic file not exist");
         }
-
-        CommitLog commitLog = SpringUtil.getBean(TopicCache.class).getTopic(topicName).getCommitLog();
+        //更新缓存中commitLog的offset信息，当前增加了bytes长度的数据
+        CommitLog commitLog = SpringUtil.getBean(TopicJSONCache.class).getTopic(topicName).getCommitLog();
         dispatcher(bytes, commitLog);
 
         commitLog.setOffset(commitLog.getOffset() + bytes.length);
 
-
+        //如果flush为true则执行刷盘逻辑
         if (flush) {
             mappedByteBuffer.force();
         }
+    }
+
+    private void mmapNewCommitLogIfNeeded() throws Exception {
+        TopicJSONCache topicJSONCache = SpringUtil.getBean(TopicJSONCache.class);
+        if (!topicJSONCache.containsTopic(topicName)) {
+            throw new RuntimeException("topic not exist");
+        }
+
+        Topic topic = topicJSONCache.getTopic(topicName);
+        CommitLog commitLog = topic.getCommitLog();
+        //如果当前commitLog可写数据则直接返回
+        if (commitLog.getLimit() - commitLog.getOffset() > 0) {
+            return;
+        }
+        //如果不够写则创建新的commitLog并通过mmap建立映射
+        String newCommitLogFile = createNewCommitLogFile(topicName, commitLog.getFileName());
+        doLoadFileWithMmap(newCommitLogFile, 0, COMMIT_LOG_DEFAULT_MMAP_SIZE);
+        //更新缓存中commitLog信息为新建的commitLog信息
+        commitLog.setFileName(newCommitLogFile.substring(newCommitLogFile.length() - 8));
+        commitLog.setOffset(0);
+        commitLog.setLimit(COMMIT_LOG_DEFAULT_MMAP_SIZE);
+
+
     }
 
     private void dispatcher(byte[] msg, CommitLog commitLog) {

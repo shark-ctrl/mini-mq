@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -20,22 +21,23 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-public class TopicCache {
+public class TopicJSONCache {
 
 
-    private List<Topic> topicList;
     private Map<String, Topic> topicMap;
     private File topicJsonFilePath;
 
 
     @PostConstruct
     public void init() {
+        //获取文件路径
         topicJsonFilePath = new File(SpringUtil.getBean(BaseConfig.class).getBrokerConfPath() + "conf/mq-topic.json");
+        //读取文件并反序列化
         byte[] bytes = FileUtil.readBytes(topicJsonFilePath);
         JSONArray objects = JSONUtil.parseArray(new String(bytes));
-        topicList = JSONUtil.toList(objects, Topic.class);
-        topicMap = topicList.stream().collect(Collectors.toMap(Topic::getTopicName, Function.identity()));
-        log.info("topicList:{}", JSONUtil.toJsonStr(topicList));
+        //以topicName作为key，topic作为value生成map
+        topicMap = JSONUtil.toList(objects, Topic.class).stream().collect(Collectors.toMap(Topic::getTopicName, Function.identity()));
+        log.info("topicList:{}", JSONUtil.toJsonStr(topicMap));
     }
 
 
@@ -48,11 +50,12 @@ public class TopicCache {
     }
 
 
-    @Scheduled(fixedRate = 15000)
+    @Scheduled(fixedRate = 10_000)
     @Async("flushTopicListScheduler")
     public void flushTopicList2Disk() {
-        log.info("flush topic list  to disk,topicList:{} ,write path:{}", JSONUtil.toJsonStr(topicList), topicJsonFilePath);
-        FileUtil.writeUtf8String(JSONUtil.toJsonStr(topicList), topicJsonFilePath);
+        log.info("flush topic list  to disk,topicList:{} ,write path:{}", JSONUtil.toJsonStr(topicMap), topicJsonFilePath);
+        ArrayList<Topic> topicArrayList = new ArrayList<>(topicMap.values());
+        FileUtil.writeUtf8String(JSONUtil.toJsonStr(topicArrayList), topicJsonFilePath);
     }
 
 }

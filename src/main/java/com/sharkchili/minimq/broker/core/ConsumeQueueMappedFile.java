@@ -5,7 +5,7 @@ import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import com.sharkchili.minimq.broker.cache.TopicCache;
+import com.sharkchili.minimq.broker.cache.TopicJSONCache;
 import com.sharkchili.minimq.broker.config.BaseConfig;
 import com.sharkchili.minimq.broker.entity.*;
 import lombok.Data;
@@ -63,7 +63,7 @@ public class ConsumeQueueMappedFile {
             throw new IllegalArgumentException("topic name is empty");
         }
 
-        Topic topic = SpringUtil.getBean(TopicCache.class).getTopic(topicName);
+        Topic topic = SpringUtil.getBean(TopicJSONCache.class).getTopic(topicName);
         Queue queue = topic.getQueueList().get(queueId);
         long diff = queue.getMaxOffset() - queue.getMinOffset() + queue.getMinOffset();
         if (diff <= 0) {
@@ -88,12 +88,12 @@ public class ConsumeQueueMappedFile {
 
 
     private void mapNewCommitLogIfNeeded() throws Exception {
-        TopicCache topicCache = SpringUtil.getBean(TopicCache.class);
-        if (!topicCache.containsTopic(topicName)) {
+        TopicJSONCache topicJSONCache = SpringUtil.getBean(TopicJSONCache.class);
+        if (!topicJSONCache.containsTopic(topicName)) {
             throw new RuntimeException("topic not exist");
         }
 
-        Topic topic = topicCache.getTopic(topicName);
+        Topic topic = topicJSONCache.getTopic(topicName);
         Queue queue = topic.getQueueList().get(queueId);
         if (queue.getMaxOffset() - queue.getCurrentOffset() + queue.getMinOffset() > 0) {
             return;
@@ -130,11 +130,11 @@ public class ConsumeQueueMappedFile {
         this.mappedByteBuffer.put(bytes);
 
 
-        if (!SpringUtil.getBean(TopicCache.class).containsTopic(topicName)) {
+        if (!SpringUtil.getBean(TopicJSONCache.class).containsTopic(topicName)) {
             throw new RuntimeException("topic file not exist");
         }
 
-        Queue queue = SpringUtil.getBean(TopicCache.class).getTopic(topicName).getQueueList().get(queueId);
+        Queue queue = SpringUtil.getBean(TopicJSONCache.class).getTopic(topicName).getQueueList().get(queueId);
         queue.setCurrentOffset(queue.getCurrentOffset() + bytes.length);
 
 
