@@ -8,6 +8,7 @@ import cn.hutool.extra.spring.SpringUtil;
 import com.sharkchili.minimq.broker.cache.TopicCache;
 import com.sharkchili.minimq.broker.config.BaseConfig;
 import com.sharkchili.minimq.broker.entity.CommitLog;
+import com.sharkchili.minimq.broker.entity.ConsumeQueue;
 import com.sharkchili.minimq.broker.entity.Message;
 import com.sharkchili.minimq.broker.entity.Topic;
 import sun.misc.Cleaner;
@@ -22,7 +23,7 @@ import java.nio.channels.FileChannel;
 import static com.sharkchili.minimq.broker.constants.BrokerConstants.*;
 
 
-public class MappedFile {
+public class CommitLogMappedFile {
 
     /**
      * 对应的commitLog实际路径地址
@@ -37,15 +38,15 @@ public class MappedFile {
     private String topicName;
 
 
-    public MappedFile() {
+    public CommitLogMappedFile() {
 
     }
 
-    public MappedFile(String path) {
+    public CommitLogMappedFile(String path) {
         this(new File(path));
     }
 
-    public MappedFile(File file) {
+    public CommitLogMappedFile(File file) {
         this.file = file;
     }
 
@@ -129,13 +130,9 @@ public class MappedFile {
 
 
     public synchronized void write(Message message, boolean flush) throws Exception {
-
-
         mapNewCommitLogIfNeeded();
 
-
         byte[] bytes = message.convert2Bytes();
-
         this.mappedByteBuffer.put(bytes);
 
 
@@ -144,12 +141,21 @@ public class MappedFile {
         }
 
         CommitLog commitLog = SpringUtil.getBean(TopicCache.class).getTopic(topicName).getCommitLog();
+        dispatcher(bytes, commitLog);
+
         commitLog.setOffset(commitLog.getOffset() + bytes.length);
 
 
         if (flush) {
             mappedByteBuffer.force();
         }
+    }
+
+    private void dispatcher(byte[] msg, CommitLog commitLog) {
+        ConsumeQueue consumeQueue = new ConsumeQueue();
+        consumeQueue.setCommitLogName(commitLog.getFileName());
+        consumeQueue.setMsgIndex(commitLog.getOffset());
+        consumeQueue.setMsgLen(msg.length);
     }
 
 

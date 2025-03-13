@@ -1,22 +1,22 @@
 package com.sharkchili.minimq.broker.cache;
 
-import com.sharkchili.minimq.broker.core.MappedFile;
+import com.sharkchili.minimq.broker.core.CommitLogMappedFile;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-public class MappedFileCache {
+public class CommitLogMappedFileCache {
 
-    private Map<String, MappedFile> cache = new ConcurrentHashMap<>();
+    private Map<String, CommitLogMappedFile> cache = new ConcurrentHashMap<>();
 
 
-    public void put(String key, MappedFile file) {
+    public void put(String key, CommitLogMappedFile file) {
         cache.put(key, file);
     }
 
-    public MappedFile get(String key) {
+    public CommitLogMappedFile get(String key) {
         return cache.get(key);
     }
 

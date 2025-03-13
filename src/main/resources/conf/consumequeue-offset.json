@@ -1,0 +1,13 @@
+[
+  {
+    "topicName": "test-topic",
+    "consumeGroup": "test-group",
+    "consumeOffsetList": [
+      {
+        "queueId": "0",
+        "commitLogName": "00000000",
+        "msgId": 100
+      }
+    ]
+  }
+]

@@ -1,7 +1,7 @@
 package com.sharkchili.minimq.broker.core;
 
 import cn.hutool.core.util.StrUtil;
-import com.sharkchili.minimq.broker.cache.MappedFileCache;
+import com.sharkchili.minimq.broker.cache.CommitLogMappedFileCache;
 import com.sharkchili.minimq.broker.entity.Message;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +16,7 @@ import static com.sharkchili.minimq.broker.constants.BrokerConstants.COMMIT_LOG_
 public class CommitLogHandler {
 
     @Autowired
-    private MappedFileCache mappedFileCache;
+    private CommitLogMappedFileCache commitLogMappedFileCache;
 
     public void loadCommitLogFile(String topicName, String fileName) throws Exception {
 
@@ -25,9 +25,9 @@ public class CommitLogHandler {
             throw new RuntimeException("invalid topicName or fileName is null");
         }
 
-        MappedFile mappedFile = new MappedFile(fileName);
+        CommitLogMappedFile mappedFile = new CommitLogMappedFile(fileName);
         mappedFile.loadFileWithMmap(topicName, 0, 1 * 1024 * 1024);
-        mappedFileCache.put(topicName, mappedFile);
+        commitLogMappedFileCache.put(topicName, mappedFile);
     }
 
     public void appendMsgCommitLog(String topicName, String msg) throws Exception {
@@ -35,12 +35,12 @@ public class CommitLogHandler {
             throw new RuntimeException("invalid msg is null");
         }
 
-        if (!mappedFileCache.containsTopic(topicName)) {
+        if (!commitLogMappedFileCache.containsTopic(topicName)) {
             throw new RuntimeException("topic not exist");
         }
 
 
-        MappedFile mappedFile = mappedFileCache.get(topicName);
+        CommitLogMappedFile mappedFile = commitLogMappedFileCache.get(topicName);
         mappedFile.write(new Message(msg));
     }
 
@@ -49,11 +49,11 @@ public class CommitLogHandler {
         if (StrUtil.isEmpty(topicName)) {
             throw new RuntimeException("invalid topicName is null");
         }
-        if (!mappedFileCache.containsTopic(topicName)) {
+        if (!commitLogMappedFileCache.containsTopic(topicName)) {
             throw new RuntimeException("topic not exist");
         }
 
-        MappedFile mappedFile = mappedFileCache.get(topicName);
+        CommitLogMappedFile mappedFile = commitLogMappedFileCache.get(topicName);
         return mappedFile.read(0, COMMIT_LOG_DEFAULT_MMAP_SIZE);
     }
 
@@ -62,10 +62,10 @@ public class CommitLogHandler {
         if (StrUtil.isEmpty(topicName)) {
             throw new RuntimeException("invalid topicName is null");
         }
-        if (!mappedFileCache.containsTopic(topicName)) {
+        if (!commitLogMappedFileCache.containsTopic(topicName)) {
             throw new RuntimeException("topic not exist");
         }
-        MappedFile mappedFile = mappedFileCache.get(topicName);
+        CommitLogMappedFile mappedFile = commitLogMappedFileCache.get(topicName);
         mappedFile.cleaner();
     }
 
