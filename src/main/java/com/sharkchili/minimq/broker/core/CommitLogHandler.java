@@ -2,7 +2,7 @@ package com.sharkchili.minimq.broker.core;
 
 import cn.hutool.core.util.StrUtil;
 import com.sharkchili.minimq.broker.cache.MappedFileCache;
-import com.sharkchili.minimq.broker.model.Message;
+import com.sharkchili.minimq.broker.entity.Message;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

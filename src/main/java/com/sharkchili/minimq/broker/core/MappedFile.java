@@ -7,9 +7,9 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.sharkchili.minimq.broker.cache.TopicCache;
 import com.sharkchili.minimq.broker.config.BaseConfig;
-import com.sharkchili.minimq.broker.model.CommitLog;
-import com.sharkchili.minimq.broker.model.Message;
-import com.sharkchili.minimq.broker.model.Topic;
+import com.sharkchili.minimq.broker.entity.CommitLog;
+import com.sharkchili.minimq.broker.entity.Message;
+import com.sharkchili.minimq.broker.entity.Topic;
 import sun.misc.Cleaner;
 
 import java.io.File;

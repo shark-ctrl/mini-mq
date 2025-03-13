@@ -5,22 +5,18 @@ import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
 import com.sharkchili.minimq.broker.config.BaseConfig;
-import com.sharkchili.minimq.broker.model.Topic;
+import com.sharkchili.minimq.broker.entity.Topic;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static java.lang.System.currentTimeMillis;
 
 @Component
 @Slf4j

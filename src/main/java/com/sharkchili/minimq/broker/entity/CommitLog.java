@@ -1,4 +1,4 @@
-package com.sharkchili.minimq.broker.model;
+package com.sharkchili.minimq.broker.entity;
 
 import lombok.Data;
 
