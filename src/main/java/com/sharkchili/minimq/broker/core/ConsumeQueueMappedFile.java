@@ -38,7 +38,7 @@ public class ConsumeQueueMappedFile {
     }
 
 
-    public ConsumeQueueMappedFile(File file,String topicName,int queueId) {
+    public ConsumeQueueMappedFile(File file, String topicName, int queueId) {
         this.file = file;
         this.topicName = topicName;
         this.queueId = queueId;
@@ -46,7 +46,7 @@ public class ConsumeQueueMappedFile {
 
 
     @SneakyThrows
-    public void loadFileWithMmap(String topicName, int offset, int size)  {
+    public void loadFileWithMmap(String topicName, int offset, int size) {
         //获取可写入的文件路径
         String latestCommitLogPath = getLatestConsumeQueuePath(topicName);
         //不存在则抛异常
@@ -117,12 +117,12 @@ public class ConsumeQueueMappedFile {
     }
 
 
-    public void write(ConsumeQueue consumeQueue) throws Exception {
-        write(consumeQueue, false);
+    public int write(ConsumeQueue consumeQueue) throws Exception {
+        return write(consumeQueue, false);
     }
 
 
-    public synchronized void write(ConsumeQueue consumeQueue, boolean flush) throws Exception {
+    public synchronized int write(ConsumeQueue consumeQueue, boolean flush) throws Exception {
         mmapNewConsumeQueueIfNeeded();
 
         byte[] bytes = consumeQueue.convert2Bytes();
@@ -140,6 +140,8 @@ public class ConsumeQueueMappedFile {
         if (flush) {
             mappedByteBuffer.force();
         }
+
+        return bytes.length;
     }
 
 

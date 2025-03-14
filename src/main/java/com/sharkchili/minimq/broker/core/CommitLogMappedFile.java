@@ -8,10 +8,7 @@ import cn.hutool.extra.spring.SpringUtil;
 import com.sharkchili.minimq.broker.cache.ConsumeQueueMappedFileCache;
 import com.sharkchili.minimq.broker.cache.TopicJSONCache;
 import com.sharkchili.minimq.broker.config.BaseConfig;
-import com.sharkchili.minimq.broker.entity.CommitLog;
-import com.sharkchili.minimq.broker.entity.ConsumeQueue;
-import com.sharkchili.minimq.broker.entity.Message;
-import com.sharkchili.minimq.broker.entity.Topic;
+import com.sharkchili.minimq.broker.entity.*;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import sun.misc.Cleaner;
@@ -170,7 +167,11 @@ public class CommitLogMappedFile {
 
         int queueId = 0;
         List<ConsumeQueueMappedFile> consumeQueueMappedFileList = SpringUtil.getBean(ConsumeQueueMappedFileCache.class).get(topicName);
-        consumeQueueMappedFileList.get(queueId).write(consumeQueue);
+        int writeLen = consumeQueueMappedFileList.get(queueId).write(consumeQueue);
+
+
+        Queue queue = SpringUtil.getBean(Topic.class).getQueueList().get(queueId);
+        queue.setCurrentOffset(queue.getCurrentOffset() + writeLen);
     }
 
 
