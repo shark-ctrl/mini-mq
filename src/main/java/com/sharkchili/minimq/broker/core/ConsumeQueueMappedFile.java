@@ -9,6 +9,7 @@ import com.sharkchili.minimq.broker.cache.TopicJSONCache;
 import com.sharkchili.minimq.broker.config.BaseConfig;
 import com.sharkchili.minimq.broker.entity.*;
 import lombok.Data;
+import lombok.SneakyThrows;
 import sun.misc.Cleaner;
 
 import java.io.File;
@@ -36,29 +37,27 @@ public class ConsumeQueueMappedFile {
 
     }
 
-    public ConsumeQueueMappedFile(String path) {
-        this(new File(path));
-    }
 
-    public ConsumeQueueMappedFile(File file) {
+    public ConsumeQueueMappedFile(File file,String topicName,int queueId) {
         this.file = file;
+        this.topicName = topicName;
+        this.queueId = queueId;
     }
 
 
-    public void loadFileWithMmap(String topicName, int offset, int size) throws Exception {
+    @SneakyThrows
+    public void loadFileWithMmap(String topicName, int offset, int size)  {
         //获取可写入的文件路径
-        String latestCommitLogPath = getLatestCommitLogPath(topicName);
+        String latestCommitLogPath = getLatestConsumeQueuePath(topicName);
         //不存在则抛异常
         if (!FileUtil.exist(latestCommitLogPath)) {
             throw new FileNotFoundException(latestCommitLogPath);
         }
-
-        this.topicName = topicName;
         //基于commitLog建立文件映射
         doLoadFileWithMmap(latestCommitLogPath, offset, size);
     }
 
-    private String getLatestCommitLogPath(String topicName) throws Exception {
+    private String getLatestConsumeQueuePath(String topicName) throws Exception {
         if (StrUtil.isEmpty(topicName)) {
             throw new IllegalArgumentException("topic name is empty");
         }
@@ -87,7 +86,7 @@ public class ConsumeQueueMappedFile {
     }
 
 
-    private void mapNewCommitLogIfNeeded() throws Exception {
+    private void mmapNewConsumeQueueIfNeeded() throws Exception {
         TopicJSONCache topicJSONCache = SpringUtil.getBean(TopicJSONCache.class);
         if (!topicJSONCache.containsTopic(topicName)) {
             throw new RuntimeException("topic not exist");
@@ -104,7 +103,7 @@ public class ConsumeQueueMappedFile {
 
         queue.setFileName(newCommitLogFile);
         queue.setMinOffset(0);
-        queue.setMaxOffset(1 * 1024 * 1024);
+        queue.setMaxOffset(COMMIT_LOG_DEFAULT_MMAP_SIZE);
         queue.setCurrentOffset(0);
 
     }
@@ -124,7 +123,7 @@ public class ConsumeQueueMappedFile {
 
 
     public synchronized void write(Message message, boolean flush) throws Exception {
-        mapNewCommitLogIfNeeded();
+        mmapNewConsumeQueueIfNeeded();
 
         byte[] bytes = message.convert2Bytes();
         this.mappedByteBuffer.put(bytes);

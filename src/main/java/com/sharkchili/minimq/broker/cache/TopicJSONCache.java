@@ -45,6 +45,10 @@ public class TopicJSONCache {
         return topicMap.get(topicName);
     }
 
+    public Map<String, Topic> getTopMap() {
+        return topicMap;
+    }
+
     public boolean containsTopic(String topicName) {
         return topicMap.containsKey(topicName);
     }

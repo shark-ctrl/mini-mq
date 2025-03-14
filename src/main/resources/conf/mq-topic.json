@@ -11,11 +11,13 @@
     "id": 1,
     "minOffset": 1,
     "maxOffset": 200,
-    "currentOffset": 100
+    "currentOffset": 100,
+    "fileName":"00000000"
   }, {
     "id": 2,
     "minOffset": 1,
     "maxOffset": 200,
-    "currentOffset": 100
+    "currentOffset": 100,
+    "fileName":"00000000"
   }]
 }]

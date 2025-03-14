@@ -97,6 +97,8 @@ public class CommitLogMappedFile {
     }
 
 
+
+
     public byte[] read(int offset, int size) throws IOException {
         byte[] bytes = new byte[size];
         this.mappedByteBuffer.position(offset);
