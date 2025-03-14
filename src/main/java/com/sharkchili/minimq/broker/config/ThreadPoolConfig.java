@@ -13,10 +13,10 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 public class ThreadPoolConfig {
     @Bean
-    public ThreadPoolExecutor flushTopicListScheduler() {
+    public ThreadPoolExecutor flush2DiskScheduler() {
         return new ThreadPoolExecutor(
-                1,
-                1,
+                Runtime.getRuntime().availableProcessors()<<1,
+                Runtime.getRuntime().availableProcessors()<<1,
                 60,
                 TimeUnit.SECONDS,
                 new ArrayBlockingQueue<>(1024),

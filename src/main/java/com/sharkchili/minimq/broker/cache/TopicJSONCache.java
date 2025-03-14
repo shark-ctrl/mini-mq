@@ -55,7 +55,7 @@ public class TopicJSONCache {
 
 
     @Scheduled(fixedRate = 10_000)
-    @Async("flushTopicListScheduler")
+    @Async("flush2DiskScheduler")
     public void flushTopicList2Disk() {
         log.info("flush topic list  to disk,topicList:{} ,write path:{}", JSONUtil.toJsonStr(topicMap), topicJsonFilePath);
         ArrayList<Topic> topicArrayList = new ArrayList<>(topicMap.values());
