@@ -117,15 +117,15 @@ public class ConsumeQueueMappedFile {
     }
 
 
-    public void write(Message message) throws Exception {
-        write(message, false);
+    public void write(ConsumeQueue consumeQueue) throws Exception {
+        write(consumeQueue, false);
     }
 
 
-    public synchronized void write(Message message, boolean flush) throws Exception {
+    public synchronized void write(ConsumeQueue consumeQueue, boolean flush) throws Exception {
         mmapNewConsumeQueueIfNeeded();
 
-        byte[] bytes = message.convert2Bytes();
+        byte[] bytes = consumeQueue.convert2Bytes();
         this.mappedByteBuffer.put(bytes);
 
 

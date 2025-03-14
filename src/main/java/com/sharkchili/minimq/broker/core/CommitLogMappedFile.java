@@ -5,12 +5,14 @@ import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import com.sharkchili.minimq.broker.cache.ConsumeQueueMappedFileCache;
 import com.sharkchili.minimq.broker.cache.TopicJSONCache;
 import com.sharkchili.minimq.broker.config.BaseConfig;
 import com.sharkchili.minimq.broker.entity.CommitLog;
 import com.sharkchili.minimq.broker.entity.ConsumeQueue;
 import com.sharkchili.minimq.broker.entity.Message;
 import com.sharkchili.minimq.broker.entity.Topic;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import sun.misc.Cleaner;
 
@@ -20,6 +22,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.List;
 
 import static com.sharkchili.minimq.broker.constants.BrokerConstants.*;
 
@@ -97,8 +100,6 @@ public class CommitLogMappedFile {
     }
 
 
-
-
     public byte[] read(int offset, int size) throws IOException {
         byte[] bytes = new byte[size];
         this.mappedByteBuffer.position(offset);
@@ -160,11 +161,16 @@ public class CommitLogMappedFile {
 
     }
 
+    @SneakyThrows
     private void dispatcher(byte[] msg, CommitLog commitLog) {
         ConsumeQueue consumeQueue = new ConsumeQueue();
         consumeQueue.setCommitLogName(commitLog.getFileName());
         consumeQueue.setMsgIndex(commitLog.getOffset());
         consumeQueue.setMsgLen(msg.length);
+
+        int queueId = 0;
+        List<ConsumeQueueMappedFile> consumeQueueMappedFileList = SpringUtil.getBean(ConsumeQueueMappedFileCache.class).get(topicName);
+        consumeQueueMappedFileList.get(queueId).write(consumeQueue);
     }
 
 
