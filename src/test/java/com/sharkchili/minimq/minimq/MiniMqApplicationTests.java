@@ -30,12 +30,14 @@ class MiniMqApplicationTests {
 
     @Test
     public void testMmapAppend() throws Exception {
+        //初始化线程池
         ExecutorService threadPool = Executors.newFixedThreadPool(100);
         CountDownLatch countDownLatch = new CountDownLatch(100);
         //清空测试文件
         FileUtil.writeBytes("".getBytes(), "F:\\tmp\\broker\\store\\test-topic\\00000000");
+        //commitLog缓存加载
         commitLogHandler.loadCommitLogFile("test-topic", "F:\\tmp\\broker\\store\\test-topic\\00000000");
-
+        //并发写入
         for (int i = 0; i < 100; i++) {
             threadPool.execute(()-> {
                 try {
@@ -47,7 +49,7 @@ class MiniMqApplicationTests {
             });
 
         }
-
+        //测试数据读取
         countDownLatch.await();
         byte[] bytes = commitLogHandler.readCommitLog("test-topic");
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
