@@ -44,6 +44,19 @@ public class ConsumerGroupOffsetCache {
     }
 
 
+    public boolean contaninConsumerGroupOffset(String key) {
+        return consumerGroupOffsetMap.containsKey(key);
+    }
+
+    public ConsumerGroupOffset getConsumerGroupOffset(String key) {
+        return consumerGroupOffsetMap.get(key);
+    }
+
+    public void putConsumerGroupOffset(String key, ConsumerGroupOffset consumerGroupOffset) {
+        consumerGroupOffsetMap.put(key, consumerGroupOffset);
+    }
+
+
     @Scheduled(fixedRate = 10_000)
     @Async("flush2DiskScheduler")
     public void flushTopicList2Disk() {
