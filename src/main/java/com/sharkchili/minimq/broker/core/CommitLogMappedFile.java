@@ -166,7 +166,7 @@ public class CommitLogMappedFile {
 
     private void dispatcher(byte[] msg, CommitLog commitLog) throws Exception {
         ConsumeQueue consumeQueue = new ConsumeQueue();
-        consumeQueue.setCommitLogNo(NumberUtil.binaryToInt(commitLog.getFileName()));
+        consumeQueue.setCommitLogNo(NumberUtil.parseInt(commitLog.getFileName()));
         consumeQueue.setMsgIndex(commitLog.getOffset());
         consumeQueue.setMsgLen(msg.length);
 

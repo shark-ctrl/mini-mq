@@ -76,7 +76,9 @@ class MiniMqApplicationTests {
         //commitLog缓存加载
         commitLogHandler.loadCommitLogFile("test-topic", "F:\\tmp\\broker\\store\\test-topic\\00000000");
 
-        commitLogHandler.appendMsgCommitLog("test-topic", "01234567890123456");
+        for (int i = 0; i < 20; i++) {
+            commitLogHandler.appendMsgCommitLog("test-topic", "0123456789012345");
+        }
 
 
         ThreadUtil.sleep(1, TimeUnit.DAYS);
