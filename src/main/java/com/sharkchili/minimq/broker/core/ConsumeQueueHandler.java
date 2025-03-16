@@ -1,11 +1,14 @@
 package com.sharkchili.minimq.broker.core;
 
 import cn.hutool.core.util.StrUtil;
+import com.sharkchili.minimq.broker.cache.CommitLogMappedFileCache;
+import com.sharkchili.minimq.broker.cache.ConsumeQueueMappedFileCache;
 import com.sharkchili.minimq.broker.cache.ConsumerGroupOffsetCache;
 import com.sharkchili.minimq.broker.cache.TopicJSONCache;
+import com.sharkchili.minimq.broker.entity.ConsumeQueue;
+import com.sharkchili.minimq.broker.entity.ConsumeQueueOffset;
 import com.sharkchili.minimq.broker.entity.ConsumerGroupOffset;
-import com.sharkchili.minimq.broker.entity.ConsumerOffset;
-import com.sharkchili.minimq.broker.entity.Topic;
+import com.sharkchili.minimq.broker.entity.Queue;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,6 +24,8 @@ public class ConsumeQueueHandler {
     private ConsumerGroupOffsetCache consumerGroupOffsetCache;
     @Autowired
     private TopicJSONCache topicJSONCache;
+    @Autowired
+    private ConsumeQueueMappedFileCache consumeQueueMappedFileCache;
 
 
     public byte[] pullMessages(String topicName, String consumeGroup, Integer queueId) {
@@ -43,9 +48,9 @@ public class ConsumeQueueHandler {
             consumerGroupOffset.setConsumerGroupName(consumeGroup);
             consumerGroupOffset.setTopicName(topicName);
 
-            List<ConsumerOffset> consumerOffsetList = topicJSONCache.getTopic(topicName).getQueueList().stream()
+            List<ConsumeQueueOffset> consumerOffsetList = topicJSONCache.getTopic(topicName).getQueueList().stream()
                     .map(q -> {
-                        ConsumerOffset consumerOffset = new ConsumerOffset();
+                        ConsumeQueueOffset consumerOffset = new ConsumeQueueOffset();
                         consumerOffset.setQueueId(q.getId());
                         consumerOffset.setCommitLogName(q.getFileName());
                         consumerOffset.setMsgId(0);
@@ -53,13 +58,23 @@ public class ConsumeQueueHandler {
                     })
                     .collect(Collectors.toList());
 
-            consumerGroupOffset.setConsumerOffsetList(consumerOffsetList);
+            consumerGroupOffset.setConsumeQueueOffsetList(consumerOffsetList);
             consumerGroupOffsetCache.putConsumerGroupOffset(key, consumerGroupOffset);
-
         }
 
+        //拉取当前消费者组对应topic的消费进度
+        consumerGroupOffset = consumerGroupOffsetCache.getConsumerGroupOffset(key);
+        //定位到具体队列的值
+        ConsumeQueueOffset consumerOffset = consumerGroupOffset.getConsumeQueueOffsetList().get(queueId);
 
-         consumerGroupOffset = consumerGroupOffsetCache.getConsumerGroupOffset(key);
+        //到consumeQueue中拿到具体的offset的值
+        ConsumeQueueMappedFile consumeQueueMappedFile = consumeQueueMappedFileCache.get(topicName).get(queueId);
+        byte[] bytes = consumeQueueMappedFile.read(consumerOffset.getMsgId());
+        ConsumeQueue consumeQueue = new ConsumeQueue();
+        consumeQueue.convert2Obj(bytes);
+
+
+
 
         return null;
 

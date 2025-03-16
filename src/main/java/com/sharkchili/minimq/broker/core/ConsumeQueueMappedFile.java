@@ -8,6 +8,7 @@ import cn.hutool.extra.spring.SpringUtil;
 import com.sharkchili.minimq.broker.cache.TopicJSONCache;
 import com.sharkchili.minimq.broker.config.BaseConfig;
 import com.sharkchili.minimq.broker.entity.*;
+import com.sun.org.apache.bcel.internal.generic.RETURN;
 import lombok.Data;
 import lombok.SneakyThrows;
 import sun.misc.Cleaner;
@@ -16,6 +17,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
@@ -31,6 +33,7 @@ public class ConsumeQueueMappedFile {
     private MappedByteBuffer mappedByteBuffer;
     private String topicName;
     private int queueId;
+    private ByteBuffer byteBuffer;
 
 
     public ConsumeQueueMappedFile() {
@@ -83,6 +86,7 @@ public class ConsumeQueueMappedFile {
         this.file = new File(fileName);
         this.fileChannel = new RandomAccessFile(file, "rw").getChannel();
         this.mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, offset, size);
+        this.byteBuffer = mappedByteBuffer.slice();
     }
 
 
@@ -109,11 +113,13 @@ public class ConsumeQueueMappedFile {
     }
 
 
-    public byte[] read(int offset, int size) throws IOException {
-        byte[] bytes = new byte[size];
-        this.mappedByteBuffer.position(offset);
-        this.mappedByteBuffer.get(bytes, 0, size);
+    public byte[] read(int offset) {
+        byte[] bytes = new byte[12];
+        ByteBuffer byteBuffer = this.mappedByteBuffer.slice();
+        byteBuffer.position(offset);
+        byteBuffer.get(bytes, 0, 12);
         return bytes;
+
     }
 
 

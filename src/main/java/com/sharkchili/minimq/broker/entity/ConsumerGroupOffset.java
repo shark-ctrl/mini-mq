@@ -8,7 +8,7 @@ import java.util.List;
 public class ConsumerGroupOffset {
     private String topicName;
     private String consumerGroupName;
-    private List<ConsumerOffset> consumerOffsetList;
+    private List<ConsumeQueueOffset> consumeQueueOffsetList;
 
 
 }

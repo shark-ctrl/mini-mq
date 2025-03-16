@@ -16,8 +16,8 @@ public class CommitLogMappedFileCache {
         cache.put(key, file);
     }
 
-    public CommitLogMappedFile get(String key) {
-        return cache.get(key);
+    public CommitLogMappedFile get(String topicName) {
+        return cache.get(topicName);
     }
 
 

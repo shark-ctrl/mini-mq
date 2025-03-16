@@ -161,7 +161,7 @@ public class CommitLogMappedFile {
     @SneakyThrows
     private void dispatcher(byte[] msg, CommitLog commitLog) {
         ConsumeQueue consumeQueue = new ConsumeQueue();
-        consumeQueue.setCommitLogName(commitLog.getFileName());
+        consumeQueue.setCommitLogNo(NumberUtil.binaryToInt(commitLog.getFileName()));
         consumeQueue.setMsgIndex(commitLog.getOffset());
         consumeQueue.setMsgLen(msg.length);
 

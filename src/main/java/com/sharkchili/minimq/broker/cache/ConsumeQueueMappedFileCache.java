@@ -45,6 +45,7 @@ public class ConsumeQueueMappedFileCache {
                     })
                     .peek(c -> c.loadFileWithMmap(topicName, 0, COMMIT_LOG_DEFAULT_MMAP_SIZE))
                     .collect(Collectors.toList());
+
             cache.put(topicName, consumeQueueMappedFileList);
         }
 
