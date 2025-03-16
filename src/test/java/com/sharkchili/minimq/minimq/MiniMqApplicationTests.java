@@ -39,7 +39,7 @@ class MiniMqApplicationTests {
         commitLogHandler.loadCommitLogFile("test-topic", "F:\\tmp\\broker\\store\\test-topic\\00000000");
         //并发写入
         for (int i = 0; i < 100; i++) {
-            threadPool.execute(()-> {
+            threadPool.execute(() -> {
                 try {
                     commitLogHandler.appendMsgCommitLog("test-topic", "0123456789012345");
                     countDownLatch.countDown();
@@ -63,7 +63,23 @@ class MiniMqApplicationTests {
         commitLogHandler.cleanCommitLog("test-topic");
 
         //commitLog进度刷盘
-        ThreadUtil.sleep(1,TimeUnit.MINUTES);
+        ThreadUtil.sleep(1, TimeUnit.MINUTES);
+
+    }
+
+
+    @Test
+    public void testMmapAppend2() throws Exception {
+
+        //清空测试文件
+        FileUtil.writeBytes("".getBytes(), "F:\\tmp\\broker\\store\\test-topic\\00000000");
+        //commitLog缓存加载
+        commitLogHandler.loadCommitLogFile("test-topic", "F:\\tmp\\broker\\store\\test-topic\\00000000");
+
+        commitLogHandler.appendMsgCommitLog("test-topic", "01234567890123456");
+
+
+        ThreadUtil.sleep(1, TimeUnit.DAYS);
 
     }
 

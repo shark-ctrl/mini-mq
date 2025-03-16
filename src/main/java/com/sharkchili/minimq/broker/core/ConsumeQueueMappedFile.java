@@ -67,8 +67,8 @@ public class ConsumeQueueMappedFile {
 
         Topic topic = SpringUtil.getBean(TopicJSONCache.class).getTopic(topicName);
         Queue queue = topic.getQueueList().get(queueId);
-        long diff = queue.getMaxOffset() - queue.getMinOffset() + queue.getMinOffset();
-        if (diff <= 0) {
+
+        if (queue.getMaxOffset() >= queue.getLimit()) {
             createConsumeQueueFile(queue.getFileName());
         }
 
@@ -98,17 +98,17 @@ public class ConsumeQueueMappedFile {
 
         Topic topic = topicJSONCache.getTopic(topicName);
         Queue queue = topic.getQueueList().get(queueId);
-        if (queue.getMaxOffset() - queue.getCurrentOffset() + queue.getMinOffset() > 0) {
+        if (queue.getMaxOffset() <= queue.getLimit()) {
             return;
         }
 
         String newCommitLogFile = createConsumeQueueFile(queue.getFileName());
         doLoadFileWithMmap(newCommitLogFile, 0, COMMIT_LOG_DEFAULT_MMAP_SIZE);
 
-        queue.setFileName(newCommitLogFile);
+        queue.setFileName(newCommitLogFile.substring(newCommitLogFile.length() - 8));
         queue.setMinOffset(0);
-        queue.setMaxOffset(COMMIT_LOG_DEFAULT_MMAP_SIZE);
-        queue.setCurrentOffset(0);
+        queue.setMaxOffset(0);
+        queue.setLimit(1 * 1024 * 1024);
 
     }
 
@@ -140,7 +140,7 @@ public class ConsumeQueueMappedFile {
         }
 
         Queue queue = SpringUtil.getBean(TopicJSONCache.class).getTopic(topicName).getQueueList().get(queueId);
-        queue.setCurrentOffset(queue.getCurrentOffset() + bytes.length);
+        queue.setMaxOffset(queue.getMaxOffset() + bytes.length);
 
 
         if (flush) {

@@ -5,6 +5,7 @@ import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.json.JSONUtil;
 import com.sharkchili.minimq.broker.cache.ConsumeQueueMappedFileCache;
 import com.sharkchili.minimq.broker.cache.TopicJSONCache;
 import com.sharkchili.minimq.broker.config.BaseConfig;
@@ -125,6 +126,7 @@ public class CommitLogMappedFile {
         }
         //更新缓存中commitLog的offset信息，当前增加了bytes长度的数据
         CommitLog commitLog = SpringUtil.getBean(TopicJSONCache.class).getTopic(topicName).getCommitLog();
+        //消息分发
         dispatcher(bytes, commitLog);
 
         commitLog.setOffset(commitLog.getOffset() + bytes.length);
@@ -149,29 +151,42 @@ public class CommitLogMappedFile {
         }
         //如果不够写则创建新的commitLog并通过mmap建立映射
         String newCommitLogFile = createNewCommitLogFile(topicName, commitLog.getFileName());
+        log.info("原有commit log文件空间不足，创建新文件:{}", newCommitLogFile);
         doLoadFileWithMmap(newCommitLogFile, 0, COMMIT_LOG_DEFAULT_MMAP_SIZE);
         //更新缓存中commitLog信息为新建的commitLog信息
         commitLog.setFileName(newCommitLogFile.substring(newCommitLogFile.length() - 8));
         commitLog.setOffset(0);
         commitLog.setLimit(100);
 
+        log.info("更新topicName:{}对应的commitLog:{}", topicName, commitLog);
+
 
     }
 
-    @SneakyThrows
-    private void dispatcher(byte[] msg, CommitLog commitLog) {
+
+    private void dispatcher(byte[] msg, CommitLog commitLog) throws Exception {
         ConsumeQueue consumeQueue = new ConsumeQueue();
         consumeQueue.setCommitLogNo(NumberUtil.binaryToInt(commitLog.getFileName()));
         consumeQueue.setMsgIndex(commitLog.getOffset());
         consumeQueue.setMsgLen(msg.length);
 
+        log.info("分发写入消息物理地址信息topicName:{},consumeQueue:{}", topicName, consumeQueue);
+
         int queueId = 0;
         List<ConsumeQueueMappedFile> consumeQueueMappedFileList = SpringUtil.getBean(ConsumeQueueMappedFileCache.class).get(topicName);
-        int writeLen = consumeQueueMappedFileList.get(queueId).write(consumeQueue);
+        ConsumeQueueMappedFile consumeQueueMappedFile = consumeQueueMappedFileList.stream()
+                .filter(q -> queueId == q.getQueueId())
+                .findFirst()
+                .get();
 
+        int writeLen = consumeQueueMappedFile.write(consumeQueue);
+        log.info("将消息写入consumeQueue物理文件中,queue id :{}consumeQueue file info:{}", queueId, JSONUtil.toJsonStr(consumeQueueMappedFile));
 
-        Queue queue = SpringUtil.getBean(Topic.class).getQueueList().get(queueId);
-        queue.setCurrentOffset(queue.getCurrentOffset() + writeLen);
+        Queue queue = SpringUtil.getBean(TopicJSONCache.class).getTopic(topicName).getQueueList().stream()
+                .filter(q -> q.getId() == queueId)
+                .findFirst()
+                .get();
+        log.info("更新mq-topic.json中队列信息了,queue:{},写入长度:{}", JSONUtil.toJsonStr(queue), writeLen);
     }
 
 

@@ -7,6 +7,6 @@ public class Queue {
     private Integer id;
     private int minOffset;
     private int maxOffset;
-    private int currentOffset;
+    private int limit;
     private String fileName;
 }

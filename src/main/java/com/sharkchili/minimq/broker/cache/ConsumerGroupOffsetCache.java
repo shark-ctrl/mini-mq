@@ -1,7 +1,9 @@
 package com.sharkchili.minimq.broker.cache;
+import com.sharkchili.minimq.broker.entity.ConsumeQueueOffset;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.sharkchili.minimq.broker.config.BaseConfig;
 import com.sharkchili.minimq.broker.entity.ConsumerGroupOffset;
@@ -61,8 +63,9 @@ public class ConsumerGroupOffsetCache {
     @Async("flush2DiskScheduler")
     public void flushTopicList2Disk() {
         List<ConsumerGroupOffset> list = new ArrayList<>(consumerGroupOffsetMap.values());
-        FileUtil.writeUtf8String(JSONUtil.toJsonStr(list), filePath);
+        FileUtil.writeUtf8String(JSONUtil.toJsonPrettyStr(list), filePath);
 
     }
+
 
 }

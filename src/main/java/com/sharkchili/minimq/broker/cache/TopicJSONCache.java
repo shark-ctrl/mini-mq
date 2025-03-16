@@ -59,7 +59,7 @@ public class TopicJSONCache {
     public void flushTopicList2Disk() {
         log.info("flush topic list  to disk,topicList:{} ,write path:{}", JSONUtil.toJsonStr(topicMap), topicJsonFilePath);
         ArrayList<Topic> topicArrayList = new ArrayList<>(topicMap.values());
-        FileUtil.writeUtf8String(JSONUtil.toJsonStr(topicArrayList), topicJsonFilePath);
+        FileUtil.writeUtf8String(JSONUtil.toJsonPrettyStr(topicArrayList), topicJsonFilePath);
     }
 
 }
